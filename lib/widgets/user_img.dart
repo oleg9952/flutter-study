@@ -3,9 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class UserImg extends StatelessWidget {
-  const UserImg({
-    Key key,
-  }) : super(key: key);
+  const UserImg({super.key});
 
   @override
   Widget build(BuildContext context) {
