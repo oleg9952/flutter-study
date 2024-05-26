@@ -41,8 +41,12 @@ class ListItem extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(title,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              color: isDone ? Colors.grey : Colors.black,
+                              fontSize: 16,
+                              decoration:
+                                  isDone ? TextDecoration.lineThrough : null,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),

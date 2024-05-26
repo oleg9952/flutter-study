@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:todo_app/src/shared/constants.dart';
 
 class BottomBar extends StatefulWidget {
@@ -16,6 +14,10 @@ class BottomBar extends StatefulWidget {
 }
 
 class _BottomBarState extends State<BottomBar> {
+  // Local State -----------------------------------
+  bool _showClearButton = false;
+
+  // Controllers -----------------------------------
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
 
@@ -25,6 +27,12 @@ class _BottomBarState extends State<BottomBar> {
       _controller.clear();
       _focusNode.unfocus();
     }
+  }
+
+  void _handleToggleClearButton() {
+    setState(() {
+      _showClearButton = _controller.text.isNotEmpty ? true : false;
+    });
   }
 
   @override
@@ -44,15 +52,37 @@ class _BottomBarState extends State<BottomBar> {
               controller: _controller,
               focusNode: _focusNode,
               onSubmitted: (_) => _handleAddTodo(),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Add a new task...',
-                border: OutlineInputBorder(
+                suffixIcon: _showClearButton
+                    ? Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: GestureDetector(
+                          onTap: () {
+                            _controller.clear();
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: const Border(
+                                  top: BorderSide(width: 2),
+                                  right: BorderSide(width: 2),
+                                  bottom: BorderSide(width: 2),
+                                  left: BorderSide(width: 2)),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Icon(Icons.clear),
+                          ),
+                        ),
+                      )
+                    : null,
+                border: const OutlineInputBorder(
                     borderSide: BorderSide(color: primaryActionColor),
                     borderRadius: BorderRadius.all(Radius.circular(10))),
               ),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
+
           // Add button
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20, bottom: 0),
@@ -82,5 +112,19 @@ class _BottomBarState extends State<BottomBar> {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_handleToggleClearButton);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.removeListener(_handleToggleClearButton);
+    _focusNode.dispose();
+    _controller.dispose();
   }
 }
