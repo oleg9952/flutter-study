@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:todo_app/src/models/todo_model.dart';
 import 'package:todo_app/src/widgets/bottom_bar/bottom_bar.dart';
 import 'package:todo_app/src/widgets/item/item.dart';
@@ -15,6 +16,8 @@ class _AppState extends State<App> {
   final List<TodoModel> todos = [];
 
   get _completedTodosCount => todos.where((todo) => todo.isDone).length;
+
+  get _hasTodos => todos.isNotEmpty;
 
   void _clearAll() {
     setState(() {
@@ -69,22 +72,26 @@ class _AppState extends State<App> {
             // Body
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: ReorderableListView.builder(
-                    padding: const EdgeInsets.all(10),
-                    itemCount: todos.length,
-                    onReorder: _reorderTodos,
-                    itemBuilder: (context, index) {
-                      final currentTodo = todos[index];
-                      return Item(
-                          key: Key(currentTodo.title + index.toString()),
-                          title: currentTodo.title,
-                          isDone: currentTodo.isDone,
-                          onChanged: (status) =>
-                              _updateTodoStatus(index: index, isDone: status!),
-                          onDelete: () => _deleteTodo(index));
-                    }),
-              ),
+                  padding: const EdgeInsets.only(top: 10),
+                  child: _hasTodos
+                      ? ReorderableListView.builder(
+                          padding: const EdgeInsets.all(10),
+                          itemCount: todos.length,
+                          onReorder: _reorderTodos,
+                          itemBuilder: (context, index) {
+                            final currentTodo = todos[index];
+                            return Item(
+                                key: Key(currentTodo.title + index.toString()),
+                                title: currentTodo.title,
+                                isDone: currentTodo.isDone,
+                                onChanged: (status) => _updateTodoStatus(
+                                    index: index, isDone: status!),
+                                onDelete: () => _deleteTodo(index));
+                          })
+                      : Center(
+                          child: Lottie.asset('assets/lottie/empty_list.json',
+                              fit: BoxFit.cover, repeat: false),
+                        )),
             ),
 
             // Bottom Bar
