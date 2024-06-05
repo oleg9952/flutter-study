@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:todo_app/src/widgets/custom_app_bar/widgets/first_row.dart';
 import 'package:todo_app/src/widgets/custom_app_bar/widgets/second_row.dart';
 
-import '../../shared/constants.dart';
-
 class CustomAppBar extends StatelessWidget {
   final int todosCount;
   final int completedTodosCount;

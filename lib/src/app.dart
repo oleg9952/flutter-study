@@ -13,47 +13,12 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+  final ScrollController _scrollController = ScrollController();
+
   final List<TodoModel> todos = [];
 
   get _completedTodosCount => todos.where((todo) => todo.isDone).length;
-
   get _hasTodos => todos.isNotEmpty;
-
-  void _clearAll() {
-    setState(() {
-      todos.clear();
-    });
-  }
-
-  void _addTodo(String todoName) {
-    setState(() {
-      todos.add(TodoModel(title: todoName));
-    });
-  }
-
-  void _updateTodoStatus({required int index, required bool isDone}) {
-    setState(() {
-      TodoModel todoToUpdate = todos[index];
-      todoToUpdate.isDone = isDone;
-    });
-  }
-
-  void _deleteTodo(int index) {
-    setState(() {
-      todos.removeAt(index);
-    });
-  }
-
-  void _reorderTodos(int oldIndex, int newIndex) {
-    setState(() {
-      if (oldIndex < newIndex) {
-        newIndex -= 1;
-      }
-
-      final TodoModel reorderedTodo = todos.removeAt(oldIndex);
-      todos.insert(newIndex, reorderedTodo);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +41,7 @@ class _AppState extends State<App> {
                   child: _hasTodos
                       ? ReorderableListView.builder(
                           padding: const EdgeInsets.all(10),
+                          scrollController: _scrollController,
                           itemCount: todos.length,
                           onReorder: _reorderTodos,
                           itemBuilder: (context, index) {
@@ -100,5 +66,49 @@ class _AppState extends State<App> {
         ),
       ),
     );
+  }
+
+  void _clearAll() {
+    setState(() {
+      todos.clear();
+    });
+  }
+
+  void _addTodo(String todoName) {
+    setState(() {
+      todos.add(TodoModel(title: todoName));
+      _scrollToBottom();
+    });
+  }
+
+  void _updateTodoStatus({required int index, required bool isDone}) {
+    setState(() {
+      TodoModel todoToUpdate = todos[index];
+      todoToUpdate.isDone = isDone;
+    });
+  }
+
+  void _deleteTodo(int index) {
+    setState(() {
+      todos.removeAt(index);
+    });
+  }
+
+  void _reorderTodos(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex < newIndex) {
+        newIndex--;
+      }
+
+      final TodoModel reorderedTodo = todos.removeAt(oldIndex);
+      todos.insert(newIndex, reorderedTodo);
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+          curve: Curves.easeOut, duration: const Duration(milliseconds: 1000));
+    });
   }
 }
