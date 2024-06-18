@@ -15,22 +15,24 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<TodoModel> todos = [];
+  final List<TodoModel> _todos = [];
+  int? _reorderingItemIndex;
 
-  get _completedTodosCount => todos.where((todo) => todo.isDone).length;
-  get _hasTodos => todos.isNotEmpty;
+  get _completedTodosCount => _todos.where((todo) => todo.isDone).length;
+  get _hasTodos => _todos.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 236, 239, 239),
       body: SafeArea(
+        bottom: false,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // App Bar
             CustomAppBar(
-                todosCount: todos.length,
+                todosCount: _todos.length,
                 completedTodosCount: _completedTodosCount,
                 onClearAll: _clearAll),
 
@@ -42,18 +44,32 @@ class _AppState extends State<App> {
                       ? ReorderableListView.builder(
                           padding: const EdgeInsets.all(10),
                           scrollController: _scrollController,
-                          itemCount: todos.length,
+                          itemCount: _todos.length,
                           onReorder: _reorderTodos,
+                          onReorderStart: _reorderStart,
+                          onReorderEnd: _reorderEnd,
                           itemBuilder: (context, index) {
-                            final currentTodo = todos[index];
+                            final currentTodo = _todos[index];
                             return Item(
-                                key: Key(currentTodo.title + index.toString()),
+                                key: Key('$index'),
                                 title: currentTodo.title,
                                 isDone: currentTodo.isDone,
                                 onChanged: (status) => _updateTodoStatus(
                                     index: index, isDone: status!),
                                 onDelete: () => _deleteTodo(index));
-                          })
+                          },
+                          proxyDecorator: (child, index, animation) {
+                            final currentTodo = _todos[index];
+                            final isReordering = _reorderingItemIndex == index;
+                            return Item(
+                                title: currentTodo.title,
+                                isDone: currentTodo.isDone,
+                                isReordering: isReordering,
+                                onChanged: (status) => _updateTodoStatus(
+                                    index: index, isDone: status!),
+                                onDelete: () => _deleteTodo(index));
+                          },
+                        )
                       : Center(
                           child: Lottie.asset('assets/lottie/empty_list.json',
                               fit: BoxFit.cover, repeat: false),
@@ -70,27 +86,27 @@ class _AppState extends State<App> {
 
   void _clearAll() {
     setState(() {
-      todos.clear();
+      _todos.clear();
     });
   }
 
   void _addTodo(String todoName) {
     setState(() {
-      todos.add(TodoModel(title: todoName));
+      _todos.add(TodoModel(title: todoName));
       _scrollToBottom();
     });
   }
 
   void _updateTodoStatus({required int index, required bool isDone}) {
     setState(() {
-      TodoModel todoToUpdate = todos[index];
+      TodoModel todoToUpdate = _todos[index];
       todoToUpdate.isDone = isDone;
     });
   }
 
   void _deleteTodo(int index) {
     setState(() {
-      todos.removeAt(index);
+      _todos.removeAt(index);
     });
   }
 
@@ -100,8 +116,20 @@ class _AppState extends State<App> {
         newIndex--;
       }
 
-      final TodoModel reorderedTodo = todos.removeAt(oldIndex);
-      todos.insert(newIndex, reorderedTodo);
+      final TodoModel reorderedTodo = _todos.removeAt(oldIndex);
+      _todos.insert(newIndex, reorderedTodo);
+    });
+  }
+
+  void _reorderStart(int index) {
+    setState(() {
+      _reorderingItemIndex = index;
+    });
+  }
+
+  void _reorderEnd(int _) {
+    setState(() {
+      _reorderingItemIndex = null;
     });
   }
 

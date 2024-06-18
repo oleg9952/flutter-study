@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:todo_app/src/shared/constants.dart';
 
@@ -20,20 +22,6 @@ class _BottomBarState extends State<BottomBar> {
   // Controllers -----------------------------------
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
-
-  void _handleAddTodo() {
-    if (_controller.text.isNotEmpty) {
-      widget.onAddTodo(_controller.text);
-      _controller.clear();
-      _focusNode.unfocus();
-    }
-  }
-
-  void _handleToggleClearButton() {
-    setState(() {
-      _showClearButton = _controller.text.isNotEmpty ? true : false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +97,10 @@ class _BottomBarState extends State<BottomBar> {
               ],
             ),
           ),
+          if (Platform.isIOS)
+            const SizedBox(
+              height: 10,
+            )
         ],
       ),
     );
@@ -126,5 +118,19 @@ class _BottomBarState extends State<BottomBar> {
     _controller.removeListener(_handleToggleClearButton);
     _focusNode.dispose();
     _controller.dispose();
+  }
+
+  void _handleAddTodo() {
+    if (_controller.text.isNotEmpty) {
+      widget.onAddTodo(_controller.text);
+      _controller.clear();
+      _focusNode.unfocus();
+    }
+  }
+
+  void _handleToggleClearButton() {
+    setState(() {
+      _showClearButton = _controller.text.isNotEmpty ? true : false;
+    });
   }
 }
