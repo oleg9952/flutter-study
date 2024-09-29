@@ -14,13 +14,17 @@ class CustomAppBar extends StatelessWidget {
     required this.completedTodosCount,
   });
 
+  bool get hasTodos => todosCount > 0;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
       child: Column(
         children: [
-          FirstRow(onClearAll: () => _showClearAllConfirmation(context)),
+          FirstRow(
+              isClearAllEnabled: hasTodos,
+              onClearAll: () => _showClearAllConfirmation(context)),
           SecondRow(
             todosCount: todosCount,
             completedTodosCount: completedTodosCount,

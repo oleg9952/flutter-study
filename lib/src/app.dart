@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:todo_app/src/models/todo_model.dart';
 import 'package:todo_app/src/shared/feedback_service.dart';
 import 'package:todo_app/src/widgets/bottom_bar/bottom_bar.dart';
 import 'package:todo_app/src/widgets/item/item.dart';
+import 'shared/constants.dart';
 import 'widgets/custom_app_bar/custom_app_bar.dart';
 
 class App extends StatefulWidget {
@@ -14,13 +17,21 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  final ScrollController _scrollController = ScrollController();
-
-  final List<TodoModel> _todos = [];
+  // Flags -------------------------------------------------------------
   int? _reorderingItemIndex;
 
-  get _completedTodosCount => _todos.where((todo) => todo.isDone).length;
-  get _hasTodos => _todos.isNotEmpty;
+  // Hive --------------------------------------------------------------
+  late Box<TodoModel> _todosBox;
+
+  // Controllers -------------------------------------------------------
+  final ScrollController _scrollController = ScrollController();
+
+  // Lifecycle ---------------------------------------------------------
+  @override
+  void initState() {
+    super.initState();
+    _todosBox = Hive.box<TodoModel>(todosBoxName);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,53 +42,67 @@ class _AppState extends State<App> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // App Bar
-            CustomAppBar(
-                todosCount: _todos.length,
-                completedTodosCount: _completedTodosCount,
-                onClearAll: _clearAll),
+            // App Bar ------------------------------------------------------
+            ValueListenableBuilder(
+              valueListenable: _todosBox.listenable(),
+              builder: (context, value, child) {
+                return CustomAppBar(
+                    todosCount: _todosBox.length,
+                    completedTodosCount:
+                        _todosBox.values.where((todo) => todo.isDone).length,
+                    onClearAll: _clearAll);
+              },
+            ),
 
-            // Body
+            // Body ---------------------------------------------------------
             Expanded(
               child: Padding(
                   padding: const EdgeInsets.only(top: 10),
-                  child: _hasTodos
-                      ? ReorderableListView.builder(
-                          padding: const EdgeInsets.all(10),
-                          scrollController: _scrollController,
-                          itemCount: _todos.length,
-                          onReorder: _reorderTodos,
-                          onReorderStart: _reorderStart,
-                          onReorderEnd: _reorderEnd,
-                          itemBuilder: (context, index) {
-                            final currentTodo = _todos[index];
-                            return Item(
-                                key: Key('$index'),
-                                title: currentTodo.title,
-                                isDone: currentTodo.isDone,
-                                onChanged: (status) => _updateTodoStatus(
-                                    index: index, isDone: status!),
-                                onDelete: () => _deleteTodo(index));
-                          },
-                          proxyDecorator: (child, index, animation) {
-                            final currentTodo = _todos[index];
-                            final isReordering = _reorderingItemIndex == index;
-                            return Item(
-                                title: currentTodo.title,
-                                isDone: currentTodo.isDone,
-                                isReordering: isReordering,
-                                onChanged: (status) => _updateTodoStatus(
-                                    index: index, isDone: status!),
-                                onDelete: () => _deleteTodo(index));
-                          },
-                        )
-                      : Center(
-                          child: Lottie.asset('assets/lottie/empty_list.json',
-                              fit: BoxFit.cover, repeat: false),
-                        )),
+                  child: ValueListenableBuilder(
+                    valueListenable: _todosBox.listenable(),
+                    builder: (context, Box<TodoModel> box, _) {
+                      return box.isNotEmpty
+                          ? ReorderableListView.builder(
+                              padding: const EdgeInsets.all(10),
+                              scrollController: _scrollController,
+                              itemCount: box.length,
+                              onReorder: _reorderTodos,
+                              onReorderStart: _reorderStart,
+                              onReorderEnd: _reorderEnd,
+                              itemBuilder: (context, index) {
+                                final currentTodo = box.getAt(index);
+                                return Item(
+                                    key: Key('$index'),
+                                    title: currentTodo?.title ?? '',
+                                    isDone: currentTodo?.isDone ?? false,
+                                    onChanged: (status) => _updateTodoStatus(
+                                        index: index, isDone: status!),
+                                    onDelete: () => _deleteTodo(index));
+                              },
+                              proxyDecorator: (_, index, animation) {
+                                final currentTodo = box.getAt(index);
+                                final isReordering =
+                                    _reorderingItemIndex == index;
+                                return Item(
+                                    title: currentTodo?.title ?? '',
+                                    isDone: currentTodo?.isDone ?? false,
+                                    isReordering: isReordering,
+                                    onChanged: (status) => _updateTodoStatus(
+                                        index: index, isDone: status!),
+                                    onDelete: () => _deleteTodo(index));
+                              },
+                            )
+                          : Center(
+                              child: Lottie.asset(
+                                  'assets/lottie/empty_list.json',
+                                  fit: BoxFit.cover,
+                                  repeat: false),
+                            );
+                    },
+                  )),
             ),
 
-            // Bottom Bar
+            // Bottom Bar ------------------------------------------------------
             BottomBar(onAddTodo: _addTodo),
           ],
         ),
@@ -85,45 +110,43 @@ class _AppState extends State<App> {
     );
   }
 
-  void _clearAll() {
-    setState(() {
-      _todos.clear();
-    });
+  // Handlers ----------------------------------------------------------
+  void _clearAll() async {
+    await _todosBox.clear();
     FeedbackService.deleting();
   }
 
-  void _addTodo(String todoName) {
-    setState(() {
-      _todos.add(TodoModel(title: todoName));
-      _scrollToBottom();
-    });
+  void _addTodo(String todoName) async {
+    await _todosBox.add(TodoModel(title: todoName));
+    _scrollToBottom();
     FeedbackService.adding();
   }
 
-  void _updateTodoStatus({required int index, required bool isDone}) {
-    setState(() {
-      TodoModel todoToUpdate = _todos[index];
+  void _updateTodoStatus({required int index, required bool isDone}) async {
+    final todoToUpdate = _todosBox.getAt(index);
+    if (todoToUpdate != null) {
       todoToUpdate.isDone = isDone;
-    });
+      await _todosBox.putAt(index, todoToUpdate);
+    }
     FeedbackService.adding();
   }
 
-  void _deleteTodo(int index) {
-    setState(() {
-      _todos.removeAt(index);
-    });
+  void _deleteTodo(int index) async {
+    await _todosBox.deleteAt(index);
     FeedbackService.deleting();
   }
 
-  void _reorderTodos(int oldIndex, int newIndex) {
-    setState(() {
-      if (oldIndex < newIndex) {
-        newIndex--;
-      }
+  void _reorderTodos(int oldIndex, int newIndex) async {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
 
-      final TodoModel reorderedTodo = _todos.removeAt(oldIndex);
-      _todos.insert(newIndex, reorderedTodo);
-    });
+    final List<TodoModel> todos = _todosBox.values.toList();
+    final TodoModel todoToReplace = todos.removeAt(oldIndex);
+    todos.insert(newIndex, todoToReplace);
+
+    await _todosBox.clear();
+    await _todosBox.addAll(todos);
   }
 
   void _reorderStart(int index) {
@@ -142,7 +165,7 @@ class _AppState extends State<App> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(microseconds: 700), () {
+      Future.delayed(const Duration(microseconds: 700), () {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       });
     });
