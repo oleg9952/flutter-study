@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:todo_app/src/models/todo_model.dart';
+import 'package:todo_app/src/shared/feedback_service.dart';
 import 'package:todo_app/src/widgets/bottom_bar/bottom_bar.dart';
 import 'package:todo_app/src/widgets/item/item.dart';
 import 'widgets/custom_app_bar/custom_app_bar.dart';
@@ -88,6 +89,7 @@ class _AppState extends State<App> {
     setState(() {
       _todos.clear();
     });
+    FeedbackService.deleting();
   }
 
   void _addTodo(String todoName) {
@@ -95,6 +97,7 @@ class _AppState extends State<App> {
       _todos.add(TodoModel(title: todoName));
       _scrollToBottom();
     });
+    FeedbackService.adding();
   }
 
   void _updateTodoStatus({required int index, required bool isDone}) {
@@ -102,12 +105,14 @@ class _AppState extends State<App> {
       TodoModel todoToUpdate = _todos[index];
       todoToUpdate.isDone = isDone;
     });
+    FeedbackService.adding();
   }
 
   void _deleteTodo(int index) {
     setState(() {
       _todos.removeAt(index);
     });
+    FeedbackService.deleting();
   }
 
   void _reorderTodos(int oldIndex, int newIndex) {
@@ -125,18 +130,21 @@ class _AppState extends State<App> {
     setState(() {
       _reorderingItemIndex = index;
     });
+    FeedbackService.editing();
   }
 
   void _reorderEnd(int _) {
     setState(() {
       _reorderingItemIndex = null;
     });
+    FeedbackService.adding();
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-          curve: Curves.easeOut, duration: const Duration(milliseconds: 1000));
+      Future.delayed(Duration(microseconds: 700), () {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
     });
   }
 }
