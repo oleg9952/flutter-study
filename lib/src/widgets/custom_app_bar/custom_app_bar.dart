@@ -7,11 +7,12 @@ class CustomAppBar extends StatelessWidget {
   final int completedTodosCount;
   final VoidCallback onClearAll;
 
-  const CustomAppBar(
-      {super.key,
-      required this.onClearAll,
-      required this.todosCount,
-      required this.completedTodosCount});
+  const CustomAppBar({
+    super.key,
+    required this.onClearAll,
+    required this.todosCount,
+    required this.completedTodosCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,13 +20,40 @@ class CustomAppBar extends StatelessWidget {
       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
       child: Column(
         children: [
-          FirstRow(onClearAll: onClearAll),
+          FirstRow(onClearAll: () => _showClearAllConfirmation(context)),
           SecondRow(
             todosCount: todosCount,
             completedTodosCount: completedTodosCount,
           )
         ],
       ),
+    );
+  }
+
+  void _showClearAllConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Clear All Tasks'),
+          content: const Text('Are you sure you want to clear all tasks?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Clear'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onClearAll();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
