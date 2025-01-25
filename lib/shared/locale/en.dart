@@ -5,4 +5,7 @@ class EnLocale {
   static const String cart = 'Cart';
   static const String settings = 'Settings';
   static const String exit = 'Exit';
+  static const String summary = 'Summary';
+  static const String totalProducts = 'Total products';
+  static const String totalPrice = 'Total price';
 }

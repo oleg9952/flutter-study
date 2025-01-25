@@ -11,6 +11,7 @@ class CustomThemeData extends ThemeExtension<CustomThemeData> {
   final Color topBarIconColor;
   final Color textColor;
   final Color subTextColor;
+  final Color productTileBackgroundColor;
   final double horizontalPadding;
 
   const CustomThemeData({
@@ -22,6 +23,7 @@ class CustomThemeData extends ThemeExtension<CustomThemeData> {
     required this.topBarIconColor,
     required this.textColor,
     required this.subTextColor,
+    required this.productTileBackgroundColor,
     required this.horizontalPadding,
   });
 
@@ -35,6 +37,7 @@ class CustomThemeData extends ThemeExtension<CustomThemeData> {
     Color? topBarIconColor,
     Color? textColor,
     Color? subTextColor,
+    Color? productTileBackgroundColor,
     double? horizontalPadding,
   }) {
     return CustomThemeData(
@@ -46,6 +49,8 @@ class CustomThemeData extends ThemeExtension<CustomThemeData> {
       topBarIconColor: topBarIconColor ?? this.topBarIconColor,
       textColor: textColor ?? this.textColor,
       subTextColor: subTextColor ?? this.subTextColor,
+      productTileBackgroundColor:
+          productTileBackgroundColor ?? this.productTileBackgroundColor,
       horizontalPadding: horizontalPadding ?? this.horizontalPadding,
     );
   }
@@ -70,6 +75,9 @@ class CustomThemeData extends ThemeExtension<CustomThemeData> {
       textColor: Color.lerp(textColor, other.textColor, t) ?? textColor,
       subTextColor:
           Color.lerp(subTextColor, other.subTextColor, t) ?? subTextColor,
+      productTileBackgroundColor: Color.lerp(productTileBackgroundColor,
+              other.productTileBackgroundColor, t) ??
+          productTileBackgroundColor,
       horizontalPadding:
           lerpDouble(horizontalPadding, other.horizontalPadding, t) ??
               horizontalPadding,

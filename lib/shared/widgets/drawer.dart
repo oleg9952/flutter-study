@@ -62,11 +62,11 @@ class DrawerWidget extends StatelessWidget {
                 },
               ),
               MenuTile(
-                title: EnLocale.cart,
-                icon: Icons.shopping_cart_rounded,
+                title: EnLocale.settings,
+                icon: Icons.settings,
                 onTap: () {
                   Navigator.of(context).pop();
-                  RoutingService.goToCartScreen(context);
+                  RoutingService.goToSettingsScreen(context);
                 },
               ),
             ],

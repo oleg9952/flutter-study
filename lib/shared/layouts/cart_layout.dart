@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:project_4/shared/widgets/top_bar.dart';
 
 import '../theme/customThemeData.dart';
-import '../widgets/top_bar.dart';
-import "constants.dart";
+import 'constants.dart';
 
-class SecondaryLayout extends StatelessWidget {
+class CartLayout extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const SecondaryLayout(
-      {super.key, required this.title, required this.children});
+  const CartLayout({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +25,8 @@ class SecondaryLayout extends StatelessWidget {
                     ?.horizontalPadding ??
                 horizontalPadding,
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: children,
-            ),
+          child: Column(
+            children: children,
           ),
         ),
       ),
