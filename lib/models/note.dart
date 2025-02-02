@@ -1,10 +1,10 @@
-import 'package:notes_app/shared/utils/id_generator.dart';
+import 'package:isar/isar.dart';
 
+part 'note.g.dart';
+
+@Collection()
 class NoteModel {
-  String id;
-  String title;
-  String text;
-
-  NoteModel({required this.title, required this.text, String? id})
-      : id = id ?? generateId();
+  Id id = Isar.autoIncrement;
+  String? title;
+  String? text;
 }

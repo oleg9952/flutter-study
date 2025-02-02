@@ -5,7 +5,10 @@ import 'router/router.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notes_provider.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotesProvider.initDB();
+
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeProvider()),

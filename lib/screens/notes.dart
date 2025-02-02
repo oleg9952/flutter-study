@@ -20,6 +20,12 @@ class _NotesScreenState extends State<NotesScreen> {
   final TextEditingController _textFieldController = TextEditingController();
 
   @override
+  void initState() {
+    Provider.of<NotesProvider>(context, listen: false).getAllNotes();
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _titleFieldController.dispose();
     _textFieldController.dispose();
@@ -117,8 +123,11 @@ class _NotesScreenState extends State<NotesScreen> {
       return;
     }
 
-    ctx.read<NotesProvider>().addNote(NoteModel(
-        title: _titleFieldController.text, text: _textFieldController.text));
+    final newNote = NoteModel()
+      ..title = _titleFieldController.text
+      ..text = _textFieldController.text;
+
+    ctx.read<NotesProvider>().addNote(newNote);
     Navigator.pop(ctx);
   }
 }

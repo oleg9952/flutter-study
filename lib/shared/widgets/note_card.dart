@@ -23,8 +23,8 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   void initState() {
-    _titleController.text = widget.note.title;
-    _textController.text = widget.note.text;
+    _titleController.text = widget.note.title ?? '';
+    _textController.text = widget.note.text ?? '';
     super.initState();
   }
 
@@ -48,15 +48,15 @@ class _NoteCardState extends State<NoteCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.note.title,
+                  widget.note.title ?? '',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: colorScheme.inverseSurface),
                 ),
                 Text(
-                  widget.note.text,
-                  style: TextStyle(color: Colors.grey),
+                  widget.note.text ?? '',
+                  style: const TextStyle(color: Colors.grey),
                 )
               ],
             ),
@@ -102,10 +102,11 @@ class _NoteCardState extends State<NoteCard> {
           titleFieldController: _titleController,
           textFieldController: _textController,
           onSubmit: () {
-            final updatedNote = NoteModel(
-                id: widget.note.id,
-                title: _titleController.text,
-                text: _textController.text);
+            final updatedNote = NoteModel()
+              ..id = widget.note.id
+              ..title = _titleController.text
+              ..text = _textController.text;
+
             context.read<NotesProvider>().updateNote(updatedNote);
             Navigator.pop(ctx);
           },
