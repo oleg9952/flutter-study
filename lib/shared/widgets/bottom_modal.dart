@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/theme_provider.dart';
 import 'button.dart';
 import 'input_field.dart';
 
@@ -24,7 +24,7 @@ class BottomModal extends StatelessWidget {
     final colorScheme = Provider.of<ThemeProvider>(context).theme.colorScheme;
 
     return Container(
-      height: 220,
+      height: 280,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
@@ -45,6 +45,7 @@ class BottomModal extends StatelessWidget {
           ),
           InputField(
             controller: textFieldController,
+            isMultiLine: true,
             hintText: 'Notes text...',
           ),
           const SizedBox(

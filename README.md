@@ -1,3 +1,4 @@
 # notes_app
 
-A new Flutter project.
+- Isar local DB
+- Provider

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/note.dart';
+import '../../db/models/note/note.dart';
 import '../../providers/notes_provider.dart';
 import '../../providers/theme_provider.dart';
 import 'bottom_modal.dart';
