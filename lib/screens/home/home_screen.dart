@@ -4,9 +4,17 @@ import 'package:project_6/components/home/section_header.dart';
 import 'package:project_6/models/category.dart';
 import 'package:project_6/models/task.dart';
 import 'package:project_6/app/router.dart';
+import 'package:project_6/components/home/add_category_sheet.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late List<Category> _categories;
 
   List<Category> _mockCategories() {
     // temporary static data for UI preview
@@ -83,10 +91,24 @@ class HomeScreen extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _categories = _mockCategories();
+  }
+
+  Future<void> _onAddCategory() async {
+    final created = await showAddCategorySheet(context);
+    if (created != null) {
+      setState(() {
+        _categories = List<Category>.from(_categories)..insert(0, created);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final categories = _mockCategories();
-    final inProgress = categories.where((c) => !c.isCompleted).toList();
-    final completed = categories.where((c) => c.isCompleted).toList();
+    final inProgress = _categories.where((c) => !c.isCompleted).toList();
+    final completed = _categories.where((c) => c.isCompleted).toList();
 
     return Scaffold(
       body: SafeArea(
@@ -141,7 +163,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: _onAddCategory,
         child: const Icon(Icons.add),
       ),
     );
