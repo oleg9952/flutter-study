@@ -13,9 +13,12 @@ class CategoryCard extends StatelessWidget {
     this.onLongPress,
   });
 
-  Color _placeholderColorFromId(String id) {
-    final hash = id.codeUnits.fold<int>(0, (acc, c) => (acc + c) % 360);
-    return HSVColor.fromAHSV(1.0, hash.toDouble(), 0.25, 0.95).toColor();
+  Color _placeholderColorFromCategory(Category c) {
+    // If a color has been persisted with the category, use it as hue; else derive from id
+    final hueSeed = (c.colorValue ??
+            c.id.codeUnits.fold<int>(0, (acc, ch) => (acc + ch) % 360)) %
+        360;
+    return HSVColor.fromAHSV(1.0, hueSeed.toDouble(), 0.25, 0.95).toColor();
   }
 
   @override
@@ -26,7 +29,7 @@ class CategoryCard extends StatelessWidget {
 
     final bgColor = isCompleted
         ? Colors.grey.shade300
-        : _placeholderColorFromId(category.id);
+        : _placeholderColorFromCategory(category);
 
     return InkWell(
       onTap: onTap,

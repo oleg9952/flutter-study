@@ -57,6 +57,9 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
         .toList();
 
     final String categoryId = DateTime.now().microsecondsSinceEpoch.toString();
+    // generate a random, pleasant pastel-like color seed
+    final int colorValue =
+        (DateTime.now().millisecondsSinceEpoch % 360).toInt();
     final List<Task> tasks = [
       for (int i = 0; i < titles.length; i++)
         Task(
@@ -66,7 +69,12 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
         )
     ];
 
-    final category = Category(id: categoryId, name: name, tasks: tasks);
+    final category = Category(
+      id: categoryId,
+      name: name,
+      tasks: tasks,
+      colorValue: colorValue,
+    );
     Navigator.of(context).pop(category);
   }
 
