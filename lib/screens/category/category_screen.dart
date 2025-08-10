@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project_6/components/category/task_section.dart';
+import 'package:provider/provider.dart';
+import 'package:project_6/state/category_store.dart';
+import 'package:project_6/models/task.dart';
 
 class CategoryScreenArgs {
   final String categoryId;
@@ -17,76 +20,67 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  late List<TaskItemData> todo;
-  late List<TaskItemData> done;
-
   @override
   void initState() {
     super.initState();
-    // mock data for UI demo
-    todo = [
-      const TaskItemData(
-          id: 't1', title: 'Prepare presentation slides', isCompleted: false),
-      const TaskItemData(
-          id: 't2', title: 'Schedule team meeting', isCompleted: false),
-      const TaskItemData(
-          id: 't3', title: 'Review project proposal', isCompleted: false),
-      const TaskItemData(
-          id: 't4', title: 'Update project documentation', isCompleted: false),
-      const TaskItemData(
-          id: 't5', title: 'Organize files and folders', isCompleted: false),
-      const TaskItemData(
-          id: 't6', title: 'Plan next sprint tasks', isCompleted: false),
-      const TaskItemData(
-          id: 't7', title: 'Check in with design team', isCompleted: false),
-      const TaskItemData(
-          id: 't8',
-          title: 'Test new feature implementation',
-          isCompleted: false),
-    ];
-    done = [
-      const TaskItemData(
-          id: 'd1', title: 'Send follow-up emails', isCompleted: true),
-      const TaskItemData(
-          id: 'd2', title: 'Submit weekly report', isCompleted: true),
-    ];
   }
 
   void _toggleInTodo(int index) {
-    setState(() {
-      final item = todo.removeAt(index);
-      done.insert(
-          0, TaskItemData(id: item.id, title: item.title, isCompleted: true));
-    });
+    final store = context.read<CategoryStore>();
+    final categoryId = widget.args!.categoryId;
+    final category = store.getById(categoryId);
+    if (category == null) return;
+    final t = category.tasks.where((t) => !t.isCompleted).toList()[index];
+    store.toggleTask(categoryId: categoryId, taskId: t.id, isCompleted: true);
   }
 
   void _toggleInDone(int index) {
-    setState(() {
-      final item = done.removeAt(index);
-      todo.insert(
-          0, TaskItemData(id: item.id, title: item.title, isCompleted: false));
-    });
+    final store = context.read<CategoryStore>();
+    final categoryId = widget.args!.categoryId;
+    final category = store.getById(categoryId);
+    if (category == null) return;
+    final t = category.tasks.where((t) => t.isCompleted).toList()[index];
+    store.toggleTask(categoryId: categoryId, taskId: t.id, isCompleted: false);
   }
 
   void _reorderTodo(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) newIndex -= 1;
-      final item = todo.removeAt(oldIndex);
-      todo.insert(newIndex, item);
-    });
+    final store = context.read<CategoryStore>();
+    final categoryId = widget.args!.categoryId;
+    final category = store.getById(categoryId);
+    if (category == null) return;
+    final todos = category.tasks.where((t) => !t.isCompleted).toList();
+    if (newIndex > oldIndex) newIndex -= 1;
+    final item = todos.removeAt(oldIndex);
+    todos.insert(newIndex, item);
+    final dones = category.tasks.where((t) => t.isCompleted).toList();
+    final newOrder = <Task>[...todos, ...dones];
+    store.reorderCategoryTasks(categoryId: categoryId, newOrder: newOrder);
   }
 
   void _reorderDone(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) newIndex -= 1;
-      final item = done.removeAt(oldIndex);
-      done.insert(newIndex, item);
-    });
+    final store = context.read<CategoryStore>();
+    final categoryId = widget.args!.categoryId;
+    final category = store.getById(categoryId);
+    if (category == null) return;
+    final dones = category.tasks.where((t) => t.isCompleted).toList();
+    if (newIndex > oldIndex) newIndex -= 1;
+    final item = dones.removeAt(oldIndex);
+    dones.insert(newIndex, item);
+    final todos = category.tasks.where((t) => !t.isCompleted).toList();
+    final newOrder = <Task>[...todos, ...dones];
+    store.reorderCategoryTasks(categoryId: categoryId, newOrder: newOrder);
   }
 
   @override
   Widget build(BuildContext context) {
     final title = widget.args?.categoryName ?? 'Category';
+    final store = context.watch<CategoryStore>();
+    final category =
+        widget.args == null ? null : store.getById(widget.args!.categoryId);
+    final tasks = category?.tasks ?? const <Task>[];
+    final todos = tasks.where((t) => !t.isCompleted).toList();
+    final dones = tasks.where((t) => t.isCompleted).toList();
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -116,13 +110,25 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                   TaskSection(
                     title: 'To Do',
-                    tasks: todo,
+                    tasks: [
+                      for (final t in todos)
+                        TaskItemData(
+                            id: t.id,
+                            title: t.title,
+                            isCompleted: t.isCompleted),
+                    ],
                     onReorder: _reorderTodo,
                     onToggleIndex: _toggleInTodo,
                   ),
                   TaskSection(
                     title: 'Completed',
-                    tasks: done,
+                    tasks: [
+                      for (final t in dones)
+                        TaskItemData(
+                            id: t.id,
+                            title: t.title,
+                            isCompleted: t.isCompleted),
+                    ],
                     onReorder: _reorderDone,
                     onToggleIndex: _toggleInDone,
                   ),
