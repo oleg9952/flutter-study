@@ -8,6 +8,7 @@ import 'package:project_6/components/home/empty_placeholder.dart';
 import 'package:provider/provider.dart';
 import 'package:project_6/state/category_store.dart';
 import 'package:project_6/screens/category/category_screen.dart';
+import 'package:project_6/components/home/edit_category_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       categoryName: c.name,
                     ),
                   ),
-                  onLongPress: (c) {},
+                  onLongPress: (c) => showEditCategorySheet(context, c),
                 ),
               if (completed.isNotEmpty) ...[
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -90,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       categoryName: c.name,
                     ),
                   ),
-                  onLongPress: (c) {},
+                  onLongPress: (c) => showEditCategorySheet(context, c),
                 ),
               ],
               const SliverToBoxAdapter(child: SizedBox(height: 96)),

@@ -1,31 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:project_6/models/category.dart';
 import 'package:project_6/models/task.dart';
+import 'package:project_6/state/category_store.dart';
 
-Future<Category?> showAddCategorySheet(BuildContext context) {
-  return showModalBottomSheet<Category>(
+Future<void> showEditCategorySheet(BuildContext context, Category category) {
+  return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
     showDragHandle: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
-    builder: (ctx) => const _AddCategorySheet(),
+    builder: (ctx) => _EditCategorySheet(category: category),
   );
 }
 
-class _AddCategorySheet extends StatefulWidget {
-  const _AddCategorySheet();
+class _EditCategorySheet extends StatefulWidget {
+  final Category category;
+  const _EditCategorySheet({required this.category});
 
   @override
-  State<_AddCategorySheet> createState() => _AddCategorySheetState();
+  State<_EditCategorySheet> createState() => _EditCategorySheetState();
 }
 
-class _AddCategorySheetState extends State<_AddCategorySheet> {
-  final TextEditingController _nameController = TextEditingController();
-  final List<TextEditingController> _taskControllers = [
-    TextEditingController()
-  ];
+class _EditCategorySheetState extends State<_EditCategorySheet> {
+  late TextEditingController _nameController;
+  late List<TextEditingController> _taskControllers;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.category.name);
+    _taskControllers = [
+      for (final t in widget.category.tasks)
+        TextEditingController(text: t.title),
+    ];
+    if (_taskControllers.isEmpty) {
+      _taskControllers.add(TextEditingController());
+    }
+  }
 
   @override
   void dispose() {
@@ -47,7 +61,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
     });
   }
 
-  void _submit() {
+  void _save() {
     if (!_formKey.currentState!.validate()) return;
 
     final String name = _nameController.text.trim();
@@ -56,18 +70,28 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
         .where((t) => t.isNotEmpty)
         .toList();
 
-    final String categoryId = DateTime.now().microsecondsSinceEpoch.toString();
-    final List<Task> tasks = [
-      for (int i = 0; i < titles.length; i++)
-        Task(
-          id: '${categoryId}_$i',
+    final List<Task> existing = widget.category.tasks;
+    final List<Task> tasks = <Task>[];
+    for (int i = 0; i < titles.length; i++) {
+      if (i < existing.length) {
+        tasks.add(existing[i].copyWith(title: titles[i]));
+      } else {
+        tasks.add(Task(
+          id: '${widget.category.id}_$i',
           title: titles[i],
           isCompleted: false,
-        )
-    ];
+        ));
+      }
+    }
 
-    final category = Category(id: categoryId, name: name, tasks: tasks);
-    Navigator.of(context).pop(category);
+    final updated = widget.category.copyWith(name: name, tasks: tasks);
+    context.read<CategoryStore>().updateCategory(updated);
+    Navigator.of(context).pop();
+  }
+
+  void _delete() {
+    context.read<CategoryStore>().deleteCategory(widget.category.id);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -84,7 +108,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New Category',
+                  'Edit Category',
                   style: Theme.of(context)
                       .textTheme
                       .headlineMedium
@@ -96,7 +120,8 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                   decoration: const InputDecoration(
                     labelText: 'Category name',
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12))),
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
                   ),
                   validator: (value) => (value == null || value.trim().isEmpty)
                       ? 'Please enter a name'
@@ -105,10 +130,9 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                 const SizedBox(height: 16),
                 Text(
                   'Tasks',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 for (int i = 0; i < _taskControllers.length; i++)
@@ -147,14 +171,30 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                     label: const Text('Add task'),
                   ),
                 ),
-                const SizedBox(height: 4),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _submit,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Create'),
-                  ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _save,
+                        icon: const Icon(Icons.save_outlined),
+                        label: const Text('Save'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                          side: BorderSide(
+                              color: Theme.of(context).colorScheme.error),
+                        ),
+                        onPressed: _delete,
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Delete'),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
               ],
