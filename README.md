@@ -1,3 +1,3 @@
 # project_6
 
-A new Flutter project.
+A Flutter test project generated with Cursor IDE.
